@@ -30,7 +30,7 @@ q = Presentation('abcd')
 r = Presentation('abcdefg')
 s = Presentation('abcdefg')
 t = Presentation('abcdefgh')
-u = Presentation('abcdefgh')
+u = Presentation('hbacgdfe')
 v = Presentation('zyxwavuts')
 w = Presentation('abcdefzgh')
 #rules in the presentations
@@ -197,15 +197,14 @@ presentation.add_rule(v, 'zyy', 'xxx')
 presentation.add_rule(v, 'ywvux', 'ttzyw')
 presentation.add_rule(v, 'yyyyy', 'vts')
 presentation.add_rule(v, 'a', 'ssttv')
-presentation.add_rule(v, 'yyywz', 'a')
+presentation.add_rule(v, 'vts', 'a')
 
 presentation.add_rule(w, 'abab', 'baba')
 presentation.add_rule(w, 'cdd', 'eee')
 presentation.add_rule(w, 'dabfe', 'ggcda')
 presentation.add_rule(w, 'ddddd', 'bgh')
 presentation.add_rule(w, 'z', 'hhggb')
-presentation.add_rule(w, 'dddac', 'z')
-
+presentation.add_rule(w, 'ddddd', 'z')
 
 #########################################################################################
 
@@ -609,9 +608,7 @@ ttt = pres_gen_min(tt)
 #print(sss.rules)
 #print(ttt.rules)
 
-print('James example:')
-assert bool(check_isomorphic_graphwise(ss, tt) == check_isomorphic(ss, tt) == brute_force_checker(ss, tt)) == True
-print('James example passed.')
+assert bool(check_isomorphic_graphwise(ss, tt)) == bool(check_isomorphic(ss, tt)) == bool(brute_force_checker(ss, tt)) == True
 
 #The River variation, testing whether or not the 
 #error induced by the above test was fixed.
@@ -632,10 +629,41 @@ ttttt = pres_gen_min(tttt)
 #print(sssss.rules)
 #print(ttttt.rules)
 
-print('River Variation:')
-assert bool(check_isomorphic_graphwise(ssss, tttt) == check_isomorphic(ssss, tttt) == brute_force_checker(ssss, tttt)) == True
-print('River passed.')
+assert bool(check_isomorphic_graphwise(ssss, tttt)) == bool(check_isomorphic(ssss, tttt)) == bool(brute_force_checker(ssss, tttt)) == True
 
+
+#one more test to ensure the method still works
+
+#Presentations xx and yy are isomorphic. The mapping should be a -> z,
+#b -> y, c -> x, etc.
+
+xx = Presentation('ahgbedcf')
+yy = Presentation('suzxwytv')
+
+presentation.add_rule(yy, 'xwxw', 'yyyyy')
+presentation.add_rule(yy, 'xwxw', 'wxwx')
+presentation.add_rule(yy, 'tyy', 'uuu')
+presentation.add_rule(yy, 'yxwvu', 'sstyx')
+presentation.add_rule(yy, 'yyyyy', 'wsz')
+
+presentation.add_rule(xx, 'cdcd', 'bbbbb')
+presentation.add_rule(xx, 'cdcd', 'dcdc')
+presentation.add_rule(xx, 'gbb', 'fff')
+presentation.add_rule(xx, 'bcdef', 'hhgbc')
+presentation.add_rule(xx, 'bbbbb', 'dha')
+
+#Observe that the new pres_gen_min function has a non-negligible
+#effect on the two presentations' rulesets.
+gmx = pres_gen_min(xx)
+gmy = pres_gen_min(yy)
+
+assert Counter(gmx.rules) != Counter(xx.rules)
+assert Counter(gmy.rules) != Counter(yy.rules)
+
+expected_output = [('a', 'z'), ('b', 'y'), ('c', 'x'), ('d', 'w'), ('e', 'v'), ('f', 'u'), ('g', 't'), ('h', 's')]
+
+#Ensure that the functions map to the expected output. 
+assert check_isomorphic(xx, yy) == brute_force_checker(xx, yy) == check_isomorphic_graphwise(xx, yy) == expected_output
 
 ######################################################################################################
 

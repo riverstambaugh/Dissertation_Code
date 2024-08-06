@@ -10,7 +10,9 @@ import csv
 import random
 import timeit
 import statistics
-import  os
+import os
+import gc
+from PIL import Image
 from matplotlib.colors import ListedColormap
 
 ############################################################################################
@@ -42,7 +44,9 @@ def get_words(A, min_length, max_length, n):
             else:
                 allwords.append(word_tuple)
 
-    pairs = sorted(list(itertools.product(allwords, repeat=2))) 
+    unsrt_pairs = list(itertools.product(allwords, repeat=2))
+
+    pairs = sorted(unsrt_pairs, key=sort_key) 
     pres_dict = dict()
 
     if type(A[0]) == str:
@@ -76,11 +80,26 @@ def get_words(A, min_length, max_length, n):
             ctr += 1
 
     #Prints the number of presentations stored in the dictionary
-    print('Number of presentations with alphabet size', len(A), 'and relation word size(s)', min_length, 'to', max_length)
+    print('Number of', n, 'relation presentations with alphabet size', len(A), 'and relation word size(s)', min_length, 'to', max_length)
     print('with one relation:', len(pres_dict))
     return pres_dict
 
+#Helper functions for presentation generation that generates a sort key, 
+#in the hope to make plots generated for subsets of a certain 
+#set of all presentations appear in the diagram with all presentations.
+#The key sorts first by total length, then the 'shape' of the lengths of the
+#words, and finally by the words themselves alphabetically.
+def sort_key(pair):
+    
+    len1 = len(pair[0])
+    len2 = len(pair[1])
 
+    total_len = len1 + len2
+    
+    pattern = tuple(sorted([len1, len2]))
+
+    return (total_len, pattern, pair[0], pair[1])
+    
 #Helper function for presentation generation. Does the same as 
 #itertools.combinations(), but also includes self-pairs. Unused in results.
 def generate_pairs(allwords):
@@ -172,6 +191,7 @@ def generate_isomorphism_grid(pres_dict):
     output_to_color = defaultdict(lambda: len(output_to_color))
     output_counter = 0
 
+    print('We made it to the loop!')
     for i, key1 in enumerate(pres_keys):
         for j, key2 in enumerate(pres_keys):
             pres1 = pres_dict[key1] 
@@ -181,7 +201,7 @@ def generate_isomorphism_grid(pres_dict):
             #different outputs. However, some presentations will have more than one isomorphism,
             #so the outputs may not be identical. This is OK.
 
-            assert bool(check_isomorphic(pres1, pres2)) == bool(check_isomorphic_graphwise(pres1, pres2)) #== bool(brute_force_checker(pres1, pres2))
+            #assert bool(check_isomorphic(pres1, pres2)) == bool(check_isomorphic_graphwise(pres1, pres2)) == bool(brute_force_checker(pres1, pres2))
          
             res = check_isomorphic(pres1, pres2)
 
@@ -200,6 +220,8 @@ def generate_isomorphism_grid(pres_dict):
 
             grid[i, j] = output_to_color[res]
 
+    print('We made it out of the loop!')
+
 
     #Saves a colored plot showing which one-relation presentations with relation word
     #size 3 and alphabet 'abc' are isomorphic to one another.
@@ -207,24 +229,35 @@ def generate_isomorphism_grid(pres_dict):
     
     #custom color map is isomorphic color first, non-isomorphic second, and 
     #invalid presentation pairs 3rd.
-    custom_colors = ['#ffeb3b', '#880e4f']#,'#000000']  #['#23E9F2', '#862d5c', '#388E3C']
+    custom_colors = ['#ffeb3b', '#880e4f']#, '#000000']  #['#23E9F2', '#862d5c', '#388E3C']
+    #for i in range(len(custom_colors)):
+
+    #    custom_colors[i] = custom_colors[i].lstrip('#')
+    #    custom_colors[i] = tuple(int(custom_colors[i][j:j+2], 16) for j in (0, 2, 4))
+    
+    #print(custom_colors)
+
+    #custom_colors_flat = [component for color in custom_colors for component in color]
     custom_cmap = ListedColormap(custom_colors, name='custom_cmap')
 
     #Generate plot and save to the 'isomorphisms' directory in 'visualizations'
-    plt.figure(figsize = (20, 20), dpi = 1000)
-    plt.imshow(grid, cmap=custom_cmap, origin='lower', extent=(pres_range.start, pres_range.stop-1, pres_range.start, pres_range.stop-1)) 
-    plt.axis('off')
-
+    fig, ax = plt.subplots(figsize = (12, 12), dpi = 1000)
+    cax = ax.imshow(grid, cmap=custom_cmap, origin='lower', extent=(pres_range.start, pres_range.stop-1, pres_range.start, pres_range.stop-1)) 
+    ax.axis('off')
+    
     directory = 'visualizations/isomorphism_bitmaps'
 
     #Make sure to change this every time to reflect what plot you want to generate!
-    filename = 'OneRelationWord_Size2_3alph_Isomorphism_final.png'
+    filename = 'OneRelationWord_Size3_3alph_Isomorphism_final_sorted.png'
 
     plt.savefig(os.path.join(directory, filename), bbox_inches='tight', pad_inches=0, dpi=1000)
 
-    plt.close()
+    plt.close(fig)
+
+    gc.collect()
     
     return grid
+
 #####################################################################################################
 
 ################################## VISUALIZING TIME TAKEN ###########################################
@@ -288,7 +321,8 @@ def average_time_data(p, q, amount_runs):
     #isomorphism, so the outputs may not be identical. This is OK. If you are running
     #time tests on large presentations, make sure to comment out the 
     #brute_force_checker portion of this code!
-    assert bool(check_isomorphic_graphwise(p, q)) == bool(check_isomorphic(p, q)) == bool(brute_force_checker(p, q))
+    #assert bool(check_isomorphic_graphwise(p, q)) == 
+    assert bool(check_isomorphic(p, q)) == bool(brute_force_checker(p, q))
 
     isomorphism_check = check_isomorphic_graphwise(p, q)
 
@@ -308,7 +342,7 @@ def average_time_data(p, q, amount_runs):
     backtrack_time = timeit.timeit(backtrack_method, number=amount_runs)
     graph_time = timeit.timeit(graphwise_method, number=amount_runs)
     brute_time = timeit.timeit(bruteforce_method, number=amount_runs)  
-  
+   
     return ((brute_time)/amount_runs, (backtrack_time)/amount_runs, (graph_time)/amount_runs, isomorphism_check)
 
 #This takes in a dictionary pres_dict containing a multitude of presentations, and uses 
@@ -333,32 +367,32 @@ def average_time_overall(pres_dict, num_runs):
         #If desired, examine what the random presentations are
         #print(pres_dict[key1].alphabet())
         #print(pres_dict[key1].rules)
-        for j in range(i, len(pres_keys)):
-            key2 = pres_keys[j]
-            pres1 = pres_dict[key1]
-            pres2 = pres_dict[key2]
+        #for j in range(i, len(pres_keys)):
+        key2 = pres_keys[i]
+        pres1 = pres_dict[key1]
+        pres2 = pres_dict[key2]
          
-            pres_combos.append((key1, key2))
+        pres_combos.append((key1, key2))
 
-            pair_averages = average_time_data(pres1, pres2, num_runs)
-            time_dict[0].append(pair_averages[0])
-            time_dict[1].append(pair_averages[1])
-            time_dict[2].append(pair_averages[2])
+        pair_averages = average_time_data(pres1, pres2, num_runs)
+        time_dict[0].append(pair_averages[0])
+        time_dict[1].append(pair_averages[1])
+        time_dict[2].append(pair_averages[2])
         
             #if-else block that will increment counters that are
             #printed to the terminal displaying the number of 
             #isomorphic, non-isomorphic, and invalid pairs.
-            if pair_averages[3] is not None:
-                if pair_averages[3]:
-                    isomorphisms += 1
-                else:
-                    non_isomorphisms += 1
-
+        if pair_averages[3] is not None:
+            if pair_averages[3]:
+                isomorphisms += 1
             else:
-                invalids += 1
-                invalid_combos.append((key1, key2))
+                non_isomorphisms += 1
 
-            total_compares += 1
+        else:
+            invalids += 1 
+            invalid_combos.append((key1, key2))
+
+        total_compares += 1
 
     print('\nNumber of random presentations:', len(pres_dict))
     print('\nTotal comparisons:', total_compares, 'Invalid comparisons:', invalids, 'they were:', invalid_combos)
@@ -419,37 +453,35 @@ def get_time_scatter(time_dict, pres_combos):
 
 ##########################################################################################
 
-############################ RUN THE CODE HERE ###########################################
+################################# RUN THE CODE HERE ######################################
+
+#Defining necessary parameters for both bitmap and scatterplot methods
 
 #Define alphabet A here, either as integers or strings
-
 #A = ['a', 'b', 'c']#, 'd', 'e', 'f', 'g', 'h', 'i', 'k']
 A = list(range(3))
 
 #Define the max length of word you desire here
-max_length = 2
-min_length = 2
+max_length = 3
+min_length = 3
 
-#relation_length_max = 250
-#relation_length_min = 100
+#########################################################################################
 
-#Get the dictionary of all presentations with relation length n
-#with words of the specified word sizes
+############################## FOR RANDOM GENERATION ####################################
 
-#Define relation length. CAREFUL! anything larger than 2 or 3 
-#on large word sizes will be very big.
-n = 1
-pres_dict = get_words(A, min_length, max_length, n)
-if pres_dict == None:
-    print('specified n was too large. Try again with n < 2.')
+#Define the range of possible relation sizes
+relation_length_max = 25
+relation_length_min = 10
+
 #Get a random set of these presentations of length rand_length:
-#number_of_pres = 10
+number_of_pres = 25
+
 #Specify the amount of times each algorithm should be run for each presentation pair:
-#num_runs = 1
+num_runs = 1
 
 #Specify the number of random words ranging from length min_length to max_length
 #we desire to generate:
-#number_of_words = 1000
+number_of_words = 500
 
 #Get the random dictionary for each presentation
 #rand_dict = get_random_word_pres(A, min_length, max_length, number_of_words, number_of_pres, relation_length_min, relation_length_max)
@@ -460,16 +492,33 @@ if pres_dict == None:
 #Scatter plot of the times for each comparison in the above
 #get_time_scatter(res[0], res[1])
 
-#Get the average time for each method to compute whether every pair in rand_dict
-#is isomorphic or not when running it 
+#############################################################################################
+
+########################### FOR SPECIFIC ONE RELATION LENGTH PRESENTATIONS ##################
+
+#Define relation length. CAREFUL! anything larger than 2
+#on most large word sizes, even with small alphabets, 
+#will be too much for the machine to run.
+n = 1
+
+#Get the dictionary of all presentations with relation length n
+#with words of the specified word sizes
+pres_dict = get_words(A, min_length, max_length, n)
+if pres_dict == None:
+    print('specified n was too large. Try again with n < 2.')
+
+numpres = len(pres_dict.keys())
+print(numpres)
 
 #Generate plot of isomorphisms between the presentations
-#if pres_dict is not None:
-#    grid = generate_isomorphism_grid(pres_dict)
+if pres_dict is not None:
+    grid = generate_isomorphism_grid(pres_dict)
 
-#with open("3x3PresentationMatrix", "w") as f:
-#    f.write(str(grid))
+with open("3x3PresentationMatrix", "w") as f:
+     for row in grid:
+         row_str = ''.join(map(str, row))
+         f.write(row_str + '\n')
 
 #Generate plot of fasted method for each pair of presentations
-generate_time_grid(pres_dict)
+#generate_time_grid(pres_dict)
 
