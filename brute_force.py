@@ -5,6 +5,9 @@ from collections import Counter, OrderedDict
 from itertools import permutations
 import random
 
+#An implementation of the brute force algorithm that 
+#checks whether presentations p and q are isomorphic,
+#provided they both satisfy C(2).
 def brute_force_checker(p, q): 
 
     #Checks if presentations are trivially isomorphic
@@ -82,62 +85,4 @@ def brute_force_checker(p, q):
             #print('The presentations are isomorphic! (BRUTE FORCE)')
             #print(sorted(bij_list))
             #print('\n')
-            return sorted(bij_list)
-
-      
-##############################################################################
-
-######################### UNUSED #############################################
-
-
-def next_permutation(a):
-    """Generate the lexicographically next permutation inplace.
-
-    https://en.wikipedia.org/wiki/Permutation#Generation_in_lexicographic_order
-    Return false if there is no next permutation.
-    """
-    # Find the largest index i such that a[i] < a[i + 1]. If no such
-    # index exists, the permutation is the last permutation
-    for i in reversed(range(len(a) - 1)):
-        if a[i] < a[i + 1]:
-            break  # found
-    else:  # no break: not found
-        return False  # no next permutation
-
-    # Find the largest index j greater than i such that a[i] < a[j]
-    j = next(j for j in reversed(range(i + 1, len(a))) if a[i] < a[j])
-
-    # Swap the value of a[i] with that of a[j]
-    a[i], a[j] = a[j], a[i]
-
-    # Reverse sequence from a[i + 1] up to and including the final element a[n]
-    a[i + 1 :] = reversed(a[i + 1 :])
-    return a
-
-
-def shuffle_presentation(p):
-    alphabet = [p.alphabet()[i] for i in range(len(p.alphabet()))]
-    random.shuffle(alphabet)
-    result = Presentation(p)
-    presentation.change_alphabet(result, "".join(alphabet))
-
-    return result
-        
-        #cpy = []
-        #for letter in current_alph:
-        #    cpy.append(letter)
-        #if not next_permutation(cpy):  
-        #    return False
-    
-      
-        #new_vals = next_permutation(current_alph)
-       
-             
-        #new_bij = {key : new_val for key, new_val in zip(bijection, new_vals)} 
-        #assert bijection != new_bij
-        #bijection = new_bij
-    
-        #new_alphabet = "".join(list(bijection.values()))  
-        #assert new_alphabet != copy.alphabet()
-     
-        #presentation.change_alphabet(copy, new_alphabet)
+            return sorted(bij_list)      

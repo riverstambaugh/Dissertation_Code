@@ -5,6 +5,10 @@ from presentation_normal_form import pres_gen_min
 import itertools
 import timeit
 
+#This file contains a multitude of tests for all 3 algorithms, created originally
+#to ensure the backtrack algorithm was returning proper outputs and modified
+#as time went on to test edge cases for all 3 algorithms.
+
 #################################################################################
 
 ############################### PRESENTATION DEFINITIONS ########################
@@ -331,26 +335,6 @@ presentation.change_alphabet(bigpres2, '1234567890qwertyuiop[]asdfghjkl;zxcvbnm,
 
 assert bool(check_isomorphic(bigpres, bigpres2)) == bool(check_isomorphic_graphwise(bigpres, bigpres2)) == True
 
-#def backtrack_method():
-    #check_isomorphic(bigpres, bigpres2)
-
-#def graphwise_method():
-    #check_isomorphic_graphwise(bigpres, bigpres2)
-
-
-##Times for each algorithm to complete the check on bigpres1 and bigpres2. Note that 
-##the backtrack algorithm is really starting to struggle with a presentation of this size.
-#backtrack_time = timeit.timeit(backtrack_method, number=1)
-#graph_time = timeit.timeit(graphwise_method, number=1)
-
-
-##THESE TWO PRESENTATIONS PRODUCE DIFFERENT ISOMORPHISMS FOR EACH ALGORITHM. 
-##This is because presentations 'b' and 'o' are identical, and hence there are 
-##multiple choices for what maps to rules in them.
-
-#print('Backtrack algorithm took:', backtrack_time, 'seconds')
-#print('Graphwise algorithm took:', graph_time, 'seconds')
-
 
 ####################################################################################################
 
@@ -631,7 +615,6 @@ ttttt = pres_gen_min(tttt)
 
 assert bool(check_isomorphic_graphwise(ssss, tttt)) == bool(check_isomorphic(ssss, tttt)) == bool(brute_force_checker(ssss, tttt)) == True
 
-
 #one more test to ensure the method still works
 
 #Presentations xx and yy are isomorphic. The mapping should be a -> z,
@@ -667,7 +650,7 @@ assert check_isomorphic(xx, yy) == brute_force_checker(xx, yy) == check_isomorph
 
 ######################################################################################################
 
-####################################### UNUSED/OLD TESTS #############################################
+####################################### UNUSED/OLD TESTS/HELPERS #####################################
 
 def print_info(p, q):
 
@@ -732,5 +715,23 @@ def confirm_output(p, q, allpres):
 #assert (check_isomorphic(u, u) == brute_force_checker(u, u)) 
 #assert (check_isomorphic(v, v) == brute_force_checker(v, v)) 
   
+#def backtrack_method():
+    #check_isomorphic(bigpres, bigpres2)
 
+#def graphwise_method():
+    #check_isomorphic_graphwise(bigpres, bigpres2)
+
+
+##Times for each algorithm to complete the check on bigpres1 and bigpres2. Note that 
+##the backtrack algorithm is really starting to struggle with a presentation of this size.
+#backtrack_time = timeit.timeit(backtrack_method, number=1)
+#graph_time = timeit.timeit(graphwise_method, number=1)
+
+
+##THESE TWO PRESENTATIONS PRODUCE DIFFERENT ISOMORPHISMS FOR EACH ALGORITHM. 
+##This is because presentations 'b' and 'o' are identical, and hence there are 
+##multiple choices for what maps to rules in them.
+
+#print('Backtrack algorithm took:', backtrack_time, 'seconds')
+#print('Graphwise algorithm took:', graph_time, 'seconds')
 

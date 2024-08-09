@@ -11,16 +11,23 @@ def pres_gen_min(p):
 
     pp.validate()
     
-    #presentation.normalize_alphabet(pp)
     presentation.remove_redundant_generators(pp)
     presentation.remove_duplicate_rules(pp)
     
+    #Save the old alphabet, to be reinstated after 
+    #complement normalizing.
     oldalph = pp.alphabet()
 
+    #Normalize the presentation's alphabet and 
+    #reduce it's complements (equivalent to 
+    #constructing an equivalence presentation
+    #presenting the same monoid.
     presentation.normalize_alphabet(pp)
-
     presentation.reduce_complements(pp)
     
+    #Change the alphabet back to the old alphabet
+    #so that the bijection returned will map 
+    #the original alphabet.
     presentation.change_alphabet(pp, oldalph)
     
     presentation.sort_each_rule(pp)
@@ -28,7 +35,5 @@ def pres_gen_min(p):
     if (presentation.are_rules_sorted(pp) != True):
         presentation.sort_rules(pp)
     
-    #presentation.normalize_alphabet(pp)
-
     return pp
 

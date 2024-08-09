@@ -3,7 +3,8 @@ from presentation_normal_form import pres_gen_min
 from check_isomorphic import unused_letters, check_trivial, smalloverlap
 import igraph as ig
 
-
+#Implementation of the graphwise algorithm that checks whether presentations
+#p and q are isomorphic, provided they both satisfy C(2).
 def check_isomorphic_graphwise(p, q):
 
     #Checks whether p and q are trivially isomorphic or trivially

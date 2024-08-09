@@ -5,7 +5,8 @@ import collections
 import itertools
 from itertools import chain
 
-#Checks whether two presentations (p and q) are isomorphic, provided that they are C(2).
+#An implementation of the backtrack algorithm that determines 
+#whether two presentations p and q are isomorphic, provided that they are C(2).
 def check_isomorphic(p, q): 
     
     #If the presentations are trivial in some way, will return 
@@ -61,7 +62,7 @@ def check_isomorphic(p, q):
         #print('Not isomorphic, the presentations have different small overlap classes.')
         return False  
 
-    #Algorithm step iii: Determine if the equivalence classes of the relation words have the same shape.
+    #Algorithm step v: Determine if the equivalence classes of the relation words have the same shape.
     #If not, the presentations cannot be isomorphic, so return False. This method also checks whether or 
     #not the presentations have the same amount of equivalence classes as a byproduct.
     p_part = find_classes(pp)
@@ -90,7 +91,7 @@ def check_isomorphic(p, q):
         #print('Not isomorphic, equivalence class shapes differ')
         return False
 
-    #Algorithm step iv: for each class, if the particular words in that class 
+    #Algorithm step vi: for each class, if the particular words in that class 
     #do not have the same lengths, the presentations cannot be isomorphic. This check 
     #determines whether or not the presentations pass this test.
     p_lengths = p_dicts[1]
@@ -106,7 +107,7 @@ def check_isomorphic(p, q):
             #print('Not isomorphic, word lengths for words in classes of size', i, 'differ')
             return False
 
-    #Algorithm step v: By class, the words are converted to their canonical form.  
+    #Algorithm step vii: By class, the words are converted to their canonical form.  
     #They are sorted shortlex in their class, and then the classes are sorted. 
     #If these arrays are not identical for p and q, the presentations do not
     #present isomorphic monoids, so we return false.
@@ -122,7 +123,7 @@ def check_isomorphic(p, q):
         #print('Not isomorphic, canonically sorted words do not match.') 
         return False
 
-    #Algorithm step vi.1: The words in each presentation are sorted into a dictionary with keys (x, y, c) where
+    #Algorithm step viii.1: The words in each presentation are sorted into a dictionary with keys (x, y, c) where
     #x is the size of the class the word is in, y is the size of the word, and c is the canonical form of the word.
     #The values are all the words that are in a class of size x, length y, with canonical form c.
 
@@ -134,7 +135,7 @@ def check_isomorphic(p, q):
     #print(q_sorted, len(q_sorted))
     #print('\n')
 
-    #Algorithm step vi.2: Now that the words are categorized and sorted, we need to pick representatives for 
+    #Algorithm step viii.2: Now that the words are categorized and sorted, we need to pick representatives for 
     #(arbitrarily) presentation p. 
     
     p_reps = get_reps(pp)
@@ -142,7 +143,7 @@ def check_isomorphic(p, q):
     #print('The representatives chosen for presentation 1 are: ')
     #print(p_reps)
 
-    #Algorithm step vi.3: Now that we have the word representatives, we need to determine the set of 
+    #Algorithm step viii.3: Now that we have the word representatives, we need to determine the set of 
     #words in q that each representative from p can be mapped to.
 
     mappings = get_mappings(p_reps, p_sorted, q_sorted)
@@ -151,7 +152,7 @@ def check_isomorphic(p, q):
     #print(mappings)
     #print('\n')
 
-    #Algorithm step vi.4: Representatives have been chosen.  Now, we do a recursive backtrack search on the 
+    #Algorithm step viii.4: Representatives have been chosen.  Now, we do a recursive backtrack search on the 
     #set of representatives, which checks at each level if the partial (or full) bijection agrees.
     #the presentations are isomorphic, so returns the bijection.  If not, returns false.
     final_res = presentation_backtrack(p_reps, mappings, pp, qq) 
@@ -633,42 +634,3 @@ def check_trivial(p, q):
 #        
 #    return D
 
-#########################################################################################################
-
-##################################### MEETING NOTES #####################################################
-
-#DONE ||||||||||||||||||||||||||||||
-
-#Monday 7/1/24
-
-#FOR BIJECTIONS, FIRST CHECK SHOULD BE TO SAY IF WE CAN EVEN MATCH UP THE WORDS.
-#Take the union of the classses of each size, length of words in each thing, and compare those lists to each other. so
-#shortlex sort them, store lengths of words in each list and sort and determine if those lists are equal.
-
-#Function that determines for each word in a given pres, find the indices in the partition list of what word is possible for it to go to (word size and class size). If there is only one, that gives less choice for algorithm.
-
-#NEED TO CREATE A DICTIONARY WHICH CONTAINS all possible info, F = {(class size, word length) : [all such words])}
-
-#Thursday 7/4/24
-
-#Canonical form of a word w = w1, ... ,wn : C(w) = (c1, ...... ,cn) n = |w|
-#ci = index of first appearance of wi, for example, dded = 0020
-#Turn the classes into these, sort each class, then sort the classes together and compare
-#All information derived from the dictionary of classes.
-
-#Pick some word representatives to cover all the letters in the alphabet.  Call the set of them W. take w1, ... , wl e W
-#, then w is in some class Ai.  We map w using the map f, (w)f, in class Bi.
-# We build a tree, (w1)f = v1, (w1)f = v2, etc.  If a mapping is possible, we take (w2)f and do the same.  
-
-#But how do we pick the representatives? SET COVERING:
-#First, order words to agree with the ordering of the classes. (optional? a good idea.)
-#Pick first word w1, add w1 to W (the set of reps) first word in the ordering.  Let L:= letters(w1)
-#while |L| < |A| where A is the alphabet:
-#   pick next word wi   
-#   if letters(wi) !<= L:
-#       add letters(wi) to L 
-#       add wi to W
-#When this is done, for each wi, find the list of all vji that wi can map to, try each one.
-#If we get to a full permutation of the alphabet, we then create a new presentation with this alphabet and with the same rules, but new alphabet, and check if the rules are identical to the rules in presentation 'q'.
-
-#NEED A CHECK FOR IF THE PRESENTATIONS AHVE A DIFFERENT NUMBER OF UNUSED LETTERS
