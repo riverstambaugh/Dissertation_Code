@@ -234,14 +234,14 @@ def generate_isomorphism_grid(pres_dict):
     custom_cmap = ListedColormap(custom_colors, name='custom_cmap')
 
     #Generate plot and save to the 'isomorphisms' directory in 'visualizations'
-    fig, ax = plt.subplots(figsize = (15, 15), dpi = 1000)
+    fig, ax = plt.subplots(figsize = (12, 12), dpi = 1000)
     cax = ax.imshow(grid, cmap=custom_cmap, origin='lower', extent=(pres_range.start, pres_range.stop-1, pres_range.start, pres_range.stop-1)) 
     ax.axis('off')
     
     directory = 'visualizations/isomorphism_bitmaps'
 
     #Make sure to change this every time to reflect what plot you want to generate!
-    filename = 'OneRelationWord_Size1-3_3alph_Isomorphism_final_correct.png'
+    filename = 'OneRelationWord_Size1-3_2alph_Isomorphism_final_correct.png'
 
     plt.savefig(os.path.join(directory, filename), bbox_inches='tight', pad_inches=0, dpi=1000)
 
@@ -473,7 +473,7 @@ def get_time_scatter(time_dict, pres_combos):
 
 #Define alphabet A here, either as integers or strings
 #A = ['a', 'b', 'c']#, 'd', 'e', 'f', 'g', 'h', 'i', 'k']
-A = list(range(3))
+A = list(range(2))
 
 #Define the max length of word you desire here
 max_length = 3
