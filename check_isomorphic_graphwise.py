@@ -1,6 +1,6 @@
 from libsemigroups_pybind11 import Kambites, Presentation, presentation, congruence_kind
 from presentation_normal_form import pres_gen_min
-from check_isomorphic import unused_letters, check_trivial, smalloverlap
+from check_isomorphic import unused_letters, check_trivial, smalloverlap, find_rednt_unused
 import igraph as ig
 
 #Implementation of the graphwise algorithm that checks whether presentations
@@ -11,31 +11,29 @@ def check_isomorphic_graphwise(p, q):
     #non-isomorphic. If they are, returns trivial isomorphism or 
     #'True'. If not, returns 'False'.
     trivial_result = check_trivial(p, q)
-    if trivial_result is not None:
-        return trivial_result
+    if trivial_result[0] is not None:
+        return trivial_result[0]
 
     #If either presentation is C(1), kill the algorithm and return a warning.
     if (smalloverlap(p) < 2) or (smalloverlap(q) < 2):
         #print('The algorithm is only valid for presentations that satisfy C(2) or higher!')
         return None
 
-    #If the number of unused letters in relation words in p differs from the number of 
-    #unused letters in relation words in q, the 
-    #presentations are not isomorphic. Returns False.
-    p_unused = unused_letters(p)
-    q_unused = unused_letters(q)
-
-    if len(p_unused) != len(q_unused): 
-        return False
-
-    #Obtain generator-minimal forms of both p and q
+    #Get the given presentations in their generator minimal form
     pp = pres_gen_min(p)
     qq = pres_gen_min(q)
+  
+    #If the presentations have alphabet letters that are unused in their 
+    #non-trivial and non-generator removable relations,
+    #determine how many there are. If the number of these unused letters
+    #differs, the presentations are not isomorphic.
+    if find_rednt_unused(p, q, pp, qq, trivial_result) == False:
+        return False
 
     #Again, we have to check trivial results for the resulting generator-minimal presentations as well. 
     trivial_result = check_trivial(pp, qq)
-    if trivial_result is not None:
-        return trivial_result
+    if trivial_result[0] is not None:
+        return trivial_result[0]
 
     #Creates graphs of the generator-minimal forms of the presentations  
     GP = rules_as_graph(pp)

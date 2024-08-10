@@ -1,6 +1,6 @@
 from libsemigroups_pybind11 import Kambites, Presentation, presentation
 from presentation_normal_form import *
-from check_isomorphic import smalloverlap, unused_letters, rule_converter, check_trivial
+from check_isomorphic import smalloverlap, unused_letters, rule_converter, check_trivial, find_rednt_unused
 from collections import Counter, OrderedDict
 from itertools import permutations
 import random
@@ -13,32 +13,32 @@ def brute_force_checker(p, q):
     #Checks if presentations are trivially isomorphic
     #or non-isomorphic.
     trivial_result = check_trivial(p, q)
-    if trivial_result is not None:
-        return trivial_result
+    if trivial_result[0] is not None:
+        return trivial_result[0]
 
     #If either presentation is C(1), kill the algorithm and return a warning.
     if (smalloverlap(p) < 2) or (smalloverlap(q) < 2):
         #print('The algorithm is only valid for presentations that satisfy C(2) or higher!')
         return None
 
-    #Checks if one presentation contains more unused letters than the other. If so, not isomorphic,
-    #so we return False.
-    p_unused = unused_letters(p)
-    q_unused = unused_letters(q)
-
-    if len(p_unused) != len(q_unused):
-        #print('Not isomorphic, the amount of unused generators for each presentation differs.')
-        return False
-
+    #Get the given presentations in their generator minimal form
+    pp = pres_gen_min(p)
     qq = pres_gen_min(q)
+ 
+    #If the presentations have alphabet letters that are unused in their 
+    #non-trivial and non-generator removable relations,
+    #determine how many there are. If the number of these unused letters
+    #differs, the presentations are not isomorphic.
+    if find_rednt_unused(p, q, pp, qq, trivial_result) == False:
+        return False
+    
     new_qq_rules = rule_converter(qq) 
     q_counter = Counter(new_qq_rules)
-    pp = pres_gen_min(p)
-    
+
     #Again, we check trivial results for the presentations in their generator-minimal form. 
     trivial_result = check_trivial(pp, qq)
-    if trivial_result is not None:
-        return trivial_result
+    if trivial_result[0] is not None:
+        return trivial_result[0]
 
     #Alphabet sizes must be the same in order for the alphabet change to work properly
     if len(pp.alphabet()) != len(qq.alphabet()):

@@ -8,12 +8,12 @@ def pres_gen_min(p):
     
     pp = Presentation(p.alphabet())
     presentation.add_rules(pp, p)
-
+     
     pp.validate()
-    
+   
     presentation.remove_redundant_generators(pp)
     presentation.remove_duplicate_rules(pp)
-    
+ 
     #Save the old alphabet, to be reinstated after 
     #complement normalizing.
     oldalph = pp.alphabet()
@@ -22,7 +22,9 @@ def pres_gen_min(p):
     #reduce it's complements (equivalent to 
     #constructing an equivalence presentation
     #presenting the same monoid.
+   
     presentation.normalize_alphabet(pp)
+  
     presentation.reduce_complements(pp)
     
     #Change the alphabet back to the old alphabet

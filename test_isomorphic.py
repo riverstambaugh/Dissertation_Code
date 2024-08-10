@@ -472,7 +472,7 @@ assert bool(brute_force_checker(vi, wi)) == bool(check_isomorphic(vi, wi)) == bo
 
 #####################################################################################################
 
-############################## EDGE CASES: NO RULES AT ALL/NO ALPHABET OR RULES #####################
+################## EDGE CASES: NO RULES AT ALL/NO ALPHABET OR RULES/ONLY TRIVIAL RULES ##############
 
 #If two presentations have the same alphabet sizes and no rules, they should be isomorphic. This checks
 #that the algorithms recognize this and return a bijection between the presentation alphabets 
@@ -500,6 +500,37 @@ assert check_isomorphic(empty1, empty2) == check_isomorphic_graphwise(empty1, em
 assert check_isomorphic(empty1, a) == check_isomorphic_graphwise(empty1, a) == brute_force_checker(empty1, a) == False
 assert check_isomorphic(b, empty2) == check_isomorphic_graphwise(b, empty2) == brute_force_checker(b, empty2) == False
 
+#Algorithms should return 'True' if the only relations are trivial and the alphabet sizes
+#are the same, and 'False' otherwise. 
+
+#Algorithms were returning 'True' here, this is wrong, but has been fixed.
+triv1 = Presentation('abc')
+presentation.add_rule(triv1, 'aba',  'aba')
+
+triv2 = Presentation('abcd') 
+presentation.add_rule(triv2, 'bcd', 'bcd')
+
+assert bool(brute_force_checker(triv1, triv2)) == bool(check_isomorphic(triv1, triv2)) == bool(check_isomorphic_graphwise(triv1, triv2)) == False
+
+#The following presentation pairs were returning 'False' for all algorithms, this has been fixed.
+triv3 = Presentation('abc')
+presentation.add_rule(triv3, 'aba',  'aba')
+
+triv4 = Presentation('abc') 
+presentation.add_rule(triv4, 'aaa', 'aaa')
+
+assert bool(brute_force_checker(triv3, triv4)) == bool(check_isomorphic(triv3, triv4)) == bool(check_isomorphic_graphwise(triv3, triv4)) == True
+
+triv5 = Presentation('abcde')
+presentation.add_rule(triv5, 'aba',  'aba')
+presentation.add_rule(triv5, 'dde', 'ede')
+
+triv6 = Presentation('abcde') 
+presentation.add_rule(triv6, 'aaa', 'aaa')
+presentation.add_rule(triv6, 'eed', 'ded')
+
+assert bool(brute_force_checker(triv5, triv6)) == bool(check_isomorphic(triv5, triv6)) == bool(check_isomorphic_graphwise(triv5, triv6)) == True
+
 ######################################################################################################
 
 ############################# FIXING OUTPUT FOR SMALL ALPHABETS ######################################
@@ -515,8 +546,87 @@ presentation.add_rule(smallrl, 'a', 'bc')
 smallrl2 = Presentation('abc')
 presentation.add_rule(smallrl2, 'b', 'cacc')
 
+#If we have a redundant generator, some trivial results will arise after 
+#generator-minimal presentation forms are found. These tests ensure that
+#is indeed the case.
+
+red1 = Presentation('abcdefgh')
+presentation.add_rule(red1, 'a', 'dde')
+
+red2 = Presentation('abcdefgh')
+presentation.add_rule(red2, 'b', 'ccc')
+
+assert bool(brute_force_checker(red1, red2)) == bool(check_isomorphic(red1, red2)) == bool(check_isomorphic_graphwise(red1, red2)) == True
+
+#Try this again, but with slightly more complex versions
+#of presentations red1 and red2
+
+presentation.add_rule(red1, 'ggh', 'fff')
+presentation.add_rule(red2, 'ffg', 'hhh')
+
+assert bool(brute_force_checker(red1, red2)) == bool(check_isomorphic(red1, red2)) == bool(check_isomorphic_graphwise(red1, red2)) == True
+
 #The outputs have been fixed, and should now match.
 assert brute_force_checker(smallrl, smallrl2) == check_isomorphic(smallrl, smallrl2) == check_isomorphic_graphwise(smallrl, smallrl2) == True
+
+#These presentations deal with the edge case where certain redundant generators are present
+#which was wrongfully triggering the unused generator clause in all 3 algorithms.
+
+#isomorphic
+red1 = Presentation('abcdefgh')
+presentation.add_rule(red1, 'a', 'dde')
+presentation.add_rule(red1, 'ggh', 'fff')
+
+red2 = Presentation('abcdefgh')
+presentation.add_rule(red2, 'b', 'ccc')
+presentation.add_rule(red2, 'ffg', 'hhh')
+
+assert bool(brute_force_checker(red1, red2)) == bool(check_isomorphic(red1, red2)) == bool(check_isomorphic_graphwise(red1, red2)) == True
+
+#isomorphic.
+red3 = Presentation('abcdefghi')
+presentation.add_rule(red3, 'a', 'dde')
+presentation.add_rule(red3, 'i', 'bbc')
+presentation.add_rule(red3, 'ggh', 'fff')
+
+red4 = Presentation('abcdefgh')
+presentation.add_rule(red4, 'b', 'ccc')
+presentation.add_rule(red4, 'ffg', 'hhh')
+
+assert bool(brute_force_checker(red3, red4)) == bool(check_isomorphic(red3, red4)) == bool(check_isomorphic_graphwise(red3, red4)) == True
+
+#non-isomorphic.
+red5 = Presentation('abcdefghi')
+presentation.add_rule(red5, 'a', 'dde')
+presentation.add_rule(red5, 'i', 'bbc')
+presentation.add_rule(red5, 'i', 'bbc')
+presentation.add_rule(red5, 'ggh', 'fff')
+
+red6 = Presentation('fgh')
+presentation.add_rule(red6, 'ffg', 'hhh')
+
+assert bool(brute_force_checker(red5, red6)) == bool(check_isomorphic(red5, red6)) == bool(check_isomorphic_graphwise(red5, red6)) == False
+
+#One more test regarding this issue.
+red7 = Presentation('abcdefghi')
+presentation.add_rule(red7, 'a', 'dde')
+presentation.add_rule(red7, 'i', 'bbc')
+presentation.add_rule(red7, 'ggh', 'fff')
+
+red8 = Presentation('abcdefghi')
+presentation.add_rule(red8, 'b', 'ccc')
+presentation.add_rule(red8, 'ffg', 'hhh')
+
+assert bool(brute_force_checker(red7, red8)) == bool(check_isomorphic(red7, red8)) == bool(check_isomorphic_graphwise(red7, red8)) == False
+
+#Does this code now fix the outstanding issue due to the bug in libsemigroups?
+bug1 = Presentation('abc')
+presentation.add_rule(red7, 'aaa', 'aaa')
+
+bug2 = Presentation('def')
+presentation.add_rule(red8, 'ded', 'ded')
+
+assert bool(brute_force_checker(bug1, bug2)) == bool(check_isomorphic(bug1, bug2)) == bool(check_isomorphic_graphwise(bug1, bug2)) == True
 
 #Another example of presentations whose outputs failed to match:
 tst1 = Presentation('abc')

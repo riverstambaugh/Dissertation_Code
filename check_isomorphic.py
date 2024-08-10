@@ -8,42 +8,34 @@ from itertools import chain
 #An implementation of the backtrack algorithm that determines 
 #whether two presentations p and q are isomorphic, provided that they are C(2).
 def check_isomorphic(p, q): 
-    
+
     #If the presentations are trivial in some way, will return 
     #whether p and q are trivially isomorphic or not.
     trivial_result = check_trivial(p, q)
-    if trivial_result is not None:
-        return trivial_result
+    if trivial_result[0] is not None: 
+        return trivial_result[0]
 
     #If either presentation is C(1), kill the algorithm and print a warning.
     if (smalloverlap(p) < 2) or (smalloverlap(q) < 2):
         #print('The algorithm is only valid for presentations that satisfy C(2) or higher!')
         return None
-
-    #Algorithm step i: If the presentations have alphabet letters that are unused in their relation words,
-    #determine how many there are. If they have a different number of unused alphabet letters, 
-    #they cannot be isomorphic.
-    p_unused = unused_letters(p)
-    q_unused = unused_letters(q)
-
-    #print('The letters not used in any relation words: ')
-    #print(p_unused)
-    #print(q_unused)
-    #print('\n')
-
-    if len(p_unused) != len(q_unused):
-        #print('Not isomorphic, the amount of unused generators for each presentation differs.')
-        return False
-   
+    
     #Get the given presentations in their generator minimal form
     pp = pres_gen_min(p)
-    qq = pres_gen_min(q) 
-    
+    qq = pres_gen_min(q)
+ 
+    #Algorithm step i: If the presentations have alphabet letters that are unused in their 
+    #non-trivial and non-generator removable relations,
+    #determine how many there are. have a different number of unused alphabet letters, 
+    #they cannot be isomorphic.
+    if find_rednt_unused(p, q, pp, qq, trivial_result) == False:
+        return False
+   
     #Just in case the generator-minimal process turned the presentations into
     #Trivial presentations, we check the trivial results again on pp and qq.
     trivial_result = check_trivial(pp, qq)
-    if trivial_result is not None:
-        return trivial_result
+    if trivial_result[0] is not None: 
+        return trivial_result[0]
 
     #Algorithm step ii: Check if the generator-minimal alphabets are the same.
     #If not, the presentations cannot be isomorphic, so return False.
@@ -171,6 +163,74 @@ def check_isomorphic(p, q):
 
 ####################################### HELPER FUNCTIONS #############################################
 
+#We determine what letters in both presentation alphabets are redundant, what letters
+#are in redundant relations that will remain in the presentation alphabet, and
+#what letters are truly unused, i.e. not in any relation words before or 
+#after all necessary generator removals.
+def find_rednt_unused(p, q, pp, qq, trivial_result):
+
+    #Determine the letters removed in the generator removal process
+    removed_p_letters = set(p.alphabet()) - set(pp.alphabet())
+    removed_q_letters = set(q.alphabet()) - set(qq.alphabet())
+    #print(removed_p_letters)
+    #print(removed_q_letters)
+
+    #Determine what letters (if any) are redundant generators:
+    p_rednts = get_rednts(p)
+    q_rednts = get_rednts(q)
+    #print('The redundant generators in p and q:')
+    #print(p_rednts)
+    #print(q_rednts)
+
+    p_removed_non_rednts = list(removed_p_letters - p_rednts)
+    q_removed_non_rednts = list(removed_q_letters - q_rednts)
+
+    if type(p.alphabet()) == str or type(q.alphabet()) == str:
+        p_removed_non_rednts = ''.join(p_removed_non_rednts)
+        q_removed_non_rednts = ''.join(q_removed_non_rednts)
+
+    p_true_unused = removed_p_letters & set(unused_letters(trivial_result[1]))
+    q_true_unused = removed_q_letters & set(unused_letters(trivial_result[2]))
+
+    #p_reused = ''.join(removed_p_letters - (p_rednts.union(p_true_unused)))
+    #q_reused = ''.join(removed_q_letters - (q_rednts.union(q_true_unused)))
+    #print('Reused letters in p and q:')
+    #print(p_reused)
+    #print(q_reused)
+
+    real_p_alph = pp.alphabet() + p_removed_non_rednts
+    real_q_alph = qq.alphabet() + q_removed_non_rednts
+    #print('real presentation alphabets:')
+    #print(real_p_alph)
+    #print(real_q_alph)
+
+    #print('The letters not used in any relation words before or after generator removal')
+    #print(p_true_unused)
+    #print(q_true_unused)
+    #print('\n')
+
+    if (len(p_removed_non_rednts) != len(q_removed_non_rednts)) and len(p_true_unused) != len(q_true_unused):
+        #print('Not isomorphic, the amount of unused generators for each presentation differs')
+        return False
+
+    if len(real_p_alph) != len(real_q_alph): 
+        #print('Not isomorphic, generator-minimal alphabets differ.')
+        return False
+
+    return None
+
+#Helper function for the above that determines 
+#what generators in a presentation are redundant
+def get_rednts(p):
+
+    rednts = set()
+
+    for letter in p.alphabet():
+        if letter in p.rules:
+            rednts.add(letter)
+
+    return rednts
+
 #Using a presentation's relation word list, determines if there are any letters in the 
 #presentation's alphabet that are unused.  Returns a list containing any unused letters.
 def unused_letters(pp):
@@ -179,7 +239,7 @@ def unused_letters(pp):
 
     for word in pp.rules:
         used_letters.update(word)
-    
+   
     used_letters = list(used_letters)
     full_alph = list(pp.alphabet())
 
@@ -527,24 +587,37 @@ def rule_converter(p):
 #or 'False' depending on what the presentations satisfy.
 def check_trivial(p, q):
 
+    #the bug in the remove_redundant_generators method necessitates
+    #the trivial check being performed on versions of the
+    #presentations with no trivial rules.
+    tp = Presentation(p)
+    tq = Presentation(q)
+
+    presentation.remove_trivial_rules(tp)
+    presentation.remove_trivial_rules(tq)
+
+    iso_check = None
+
     #If the presentations are both empty, they are trivially isomorphic.
-    if len(p.alphabet()) == len(q.alphabet()) == 0:
-        return True
+    if len(tp.alphabet()) == len(tq.alphabet()) == 0:
+        iso_check = True
 
     #If one alphabet is length 0, and the other is not, return False.
-    if (len(p.alphabet()) == 0 and len(q.alphabet()) != 0) or (len(q.alphabet()) == 0 and len(p.alphabet()) != 0):  
-        return False
+    elif (len(tp.alphabet()) == 0 and len(tq.alphabet()) != 0) or (len(tq.alphabet()) == 0 and len(tp.alphabet()) != 0):      iso_check = False
 
     #If the lengths of the alphabets are the same and neither presentation
     #has any rules, then they are isomorphic, and in fact there are 
     #(len(pp.alphabet()))! isomorphisms. Returns one of these.
-    if len(p.alphabet()) == len(q.alphabet()) and len(p.rules) == len(q.rules) == 0:
+    elif len(tp.alphabet()) == len(tq.alphabet()) and len(tp.rules) == len(tq.rules) == 0:
         bijection = []
-        for i in range(len(p.alphabet())):
-            bijection.append((p.alphabet()[i], q.alphabet()[i]))
-        return bijection
+        for i in range(len(tp.alphabet())):
+            bijection.append((tp.alphabet()[i], tq.alphabet()[i]))
+        iso_check = bijection
 
-    return None
+    elif len(tp.alphabet()) != len(tq.alphabet()) and len(tp.rules) == len(tq.rules) == 0:
+        iso_check = False
+
+    return (iso_check, tp, tq)
 
 #################################################################################################
 
