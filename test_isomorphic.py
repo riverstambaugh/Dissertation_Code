@@ -613,11 +613,22 @@ presentation.add_rule(red7, 'a', 'dde')
 presentation.add_rule(red7, 'i', 'bbc')
 presentation.add_rule(red7, 'ggh', 'fff')
 
-red8 = Presentation('abcdefghi')
+red8 = Presentation('abcdefgh')
 presentation.add_rule(red8, 'b', 'ccc')
 presentation.add_rule(red8, 'ffg', 'hhh')
 
-assert bool(brute_force_checker(red7, red8)) == bool(check_isomorphic(red7, red8)) == bool(check_isomorphic_graphwise(red7, red8)) == False
+assert bool(brute_force_checker(red7, red8)) == bool(check_isomorphic(red7, red8)) == bool(check_isomorphic_graphwise(red7, red8)) == True
+
+red9 = Presentation('abcdefghi')
+presentation.add_rule(red9, 'a', 'bbb')
+presentation.add_rule(red9, 'cf', 'gg')
+presentation.add_rule(red9, 'h', 'ccc')
+
+red10 = Presentation('abcdefgh')
+presentation.add_rule(red10, 'b', 'cdc')
+presentation.add_rule(red10, 'fa', 'ee')
+
+assert bool(brute_force_checker(red9, red10)) == bool(check_isomorphic(red9, red10)) == bool(check_isomorphic_graphwise(red9, red10)) == True
 
 #Does this code now fix the outstanding issue due to the bug in libsemigroups?
 bug1 = Presentation('abc')

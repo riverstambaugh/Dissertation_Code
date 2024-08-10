@@ -181,9 +181,13 @@ def find_rednt_unused(p, q, pp, qq, trivial_result):
     #print('The redundant generators in p and q:')
     #print(p_rednts)
     #print(q_rednts)
-
+    
     p_removed_non_rednts = list(removed_p_letters - p_rednts)
     q_removed_non_rednts = list(removed_q_letters - q_rednts)
+    #print('removed non rednts:')
+    #print(p_removed_non_rednts)
+    #print(q_removed_non_rednts)
+
 
     if type(p.alphabet()) == str or type(q.alphabet()) == str:
         p_removed_non_rednts = ''.join(p_removed_non_rednts)
@@ -209,7 +213,8 @@ def find_rednt_unused(p, q, pp, qq, trivial_result):
     #print(q_true_unused)
     #print('\n')
 
-    if (len(p_removed_non_rednts) != len(q_removed_non_rednts)) and len(p_true_unused) != len(q_true_unused):
+    if (len(p_removed_non_rednts) != len(q_removed_non_rednts)): 
+    #and len(p_true_unused) != len(q_true_unused):
         #print('Not isomorphic, the amount of unused generators for each presentation differs')
         return False
 
