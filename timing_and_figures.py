@@ -234,14 +234,14 @@ def generate_isomorphism_grid(pres_dict):
     custom_cmap = ListedColormap(custom_colors, name='custom_cmap')
 
     #Generate plot and save to the 'isomorphisms' directory in 'visualizations'
-    fig, ax = plt.subplots(figsize = (12, 12), dpi = 1000)
+    fig, ax = plt.subplots(figsize = (15, 15), dpi = 1000)
     cax = ax.imshow(grid, cmap=custom_cmap, origin='lower', extent=(pres_range.start, pres_range.stop-1, pres_range.start, pres_range.stop-1)) 
     ax.axis('off')
     
     directory = 'visualizations/isomorphism_bitmaps'
 
     #Make sure to change this every time to reflect what plot you want to generate!
-    filename = 'OneRelationWord_Size1-3_2alph_Isomorphism_final_correct.png'
+    filename = 'OneRelationWord_Size1-4_2alph_Isomorphism_final_correct.png'
 
     plt.savefig(os.path.join(directory, filename), bbox_inches='tight', pad_inches=0, dpi=1000)
 
@@ -290,11 +290,11 @@ def generate_time_grid(pres_dict):
     fastest_function = np.argmin(times_grid, axis = 2)
 
 
-    fig, ax = plt.subplots(figsize=(12, 12), dpi=1000)
+    fig, ax = plt.subplots(figsize=(15, 15), dpi=1000)
     cax = ax.imshow(fastest_function, cmap = 'cool', interpolation = 'nearest')
     ax.axis('off')
 
-    filename = 'OneWordLength1-3_2alph_timing.png' 
+    filename = 'OneWordLength1-4_2alph_timing.png' 
     directory = 'visualizations/time_bitmaps'
 
     plt.savefig(os.path.join(directory, filename), bbox_inches='tight', pad_inches=0, dpi=1000)
@@ -320,8 +320,7 @@ def average_time_data(p, q, amount_runs):
     #isomorphism, so the outputs may not be identical. This is OK. If you are running
     #time tests on large presentations, make sure to comment out the 
     #brute_force_checker portion of this code!
-    assert bool(check_isomorphic_graphwise(p, q)) == bool(check_isomorphic(p, q)) 
-    #== bool(brute_force_checker(p, q))
+    assert bool(check_isomorphic_graphwise(p, q)) == bool(check_isomorphic(p, q)) == bool(brute_force_checker(p, q))
 
     isomorphism_check = check_isomorphic_graphwise(p, q)
 
@@ -338,10 +337,11 @@ def average_time_data(p, q, amount_runs):
     #comment out brute_time or backtrack_time if necessary and replace them 
     #to simply be zero. The code will still produce averages for the 
     #algorithms you are interested in.
+   
     backtrack_time = timeit.timeit(backtrack_method, number=amount_runs)
     graph_time = timeit.timeit(graphwise_method, number=amount_runs)
-    #brute_time = timeit.timeit(bruteforce_method, number=amount_runs)  
-    brute_time = 0
+    brute_time = timeit.timeit(bruteforce_method, number=amount_runs)  
+  
     return ((brute_time)/amount_runs, (backtrack_time)/amount_runs, (graph_time)/amount_runs, isomorphism_check)
 
 #This takes in a dictionary pres_dict containing a multitude of presentations, and uses 
@@ -439,10 +439,10 @@ def get_time_scatter(time_dict, pres_combos):
 
     colors = ['blue', 'green', 'red']
 
-    plt.figure(figsize=(20, 10))
+    plt.figure(figsize=(15, 10))
 
     #comment out / change marker and color indexing as necessary.
-    #plt.scatter(x, time_dict[0], label='BFA', marker=markers[0], color=colors[0])
+    plt.scatter(x, time_dict[0], label='BFA', marker=markers[0], color=colors[0])
     plt.scatter(x, time_dict[1], label='BTA', marker=markers[1], color=colors[1])
     plt.scatter(x, time_dict[2], label='GWA', marker=markers[2], color=colors[2])
 
@@ -456,7 +456,7 @@ def get_time_scatter(time_dict, pres_combos):
     
     #Change title of PNG as necessary given random presentation
     #generation parameters.
-    filename = 'BFBTGW_A100_RW6-12_RL100-250_?comp'
+    filename = 'GW_A2_RW1-4_RL4-6_45comp'
 
     path = 'visualizations/time_dotplots'
 
@@ -469,6 +469,12 @@ def get_time_scatter(time_dict, pres_combos):
 
 ################################# RUN THE CODE HERE ######################################
 
+#As it is, all 3 plots will generate when this code is run. For less robust machines, 
+#we recommend running one plot generator at a time and commenting out the others below.
+#For generating time dotplots on large presentation sizes, 
+#make sure to comment out isomorphism bitmap and time bitmap methods.
+
+
 #Defining necessary parameters for both bitmap and scatterplot methods
 
 #Define alphabet A here, either as integers or strings
@@ -476,7 +482,7 @@ def get_time_scatter(time_dict, pres_combos):
 A = list(range(2))
 
 #Define the max length of word you desire here
-max_length = 3
+max_length = 4
 min_length = 1
 
 #########################################################################################
@@ -484,27 +490,27 @@ min_length = 1
 ############################## FOR RANDOM GENERATION ####################################
 
 #Define the range of possible relation sizes
-relation_length_max = 250
-relation_length_min = 100
+relation_length_max = 6
+relation_length_min = 4
 
 #Get a random set of these presentations of length rand_length:
-number_of_pres = 15
+number_of_pres = 10
 
 #Specify the amount of times each algorithm should be run for each presentation pair:
 num_runs = 1
 
 #Specify the number of random words ranging from length min_length to max_length
 #we desire to generate:
-number_of_words = 1000
+number_of_words = 250
 
 #Get the random dictionary for each presentation
-#rand_dict = get_random_word_pres(A, min_length, max_length, number_of_words, number_of_pres, relation_length_min, relation_length_max)
+rand_dict = get_random_word_pres(A, min_length, max_length, number_of_words, number_of_pres, relation_length_min, relation_length_max)
 
 #Compute the average times overall for each algorithm
-#res = average_time_overall(rand_dict, num_runs) 
+res = average_time_overall(rand_dict, num_runs) 
 
 #Scatter plot of the times for each comparison in the above
-#get_time_scatter(res[0], res[1])
+get_time_scatter(res[0], res[1])
 
 #############################################################################################
 
@@ -535,5 +541,5 @@ if pres_dict is not None:
 #         f.write(row_str + '\n')
 
 #Generate plot of fasted method for each pair of presentations
-#generate_time_grid(pres_dict)
+generate_time_grid(pres_dict)
 

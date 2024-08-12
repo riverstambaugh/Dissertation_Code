@@ -172,23 +172,16 @@ def find_rednt_unused(p, q, pp, qq, trivial_result):
     #Determine the letters removed in the generator removal process
     removed_p_letters = set(p.alphabet()) - set(pp.alphabet())
     removed_q_letters = set(q.alphabet()) - set(qq.alphabet())
-    #print(removed_p_letters)
-    #print(removed_q_letters)
-
+   
     #Determine what letters (if any) are redundant generators:
     p_rednts = get_rednts(p)
     q_rednts = get_rednts(q)
-    #print('The redundant generators in p and q:')
-    #print(p_rednts)
-    #print(q_rednts)
-    
+     
     p_removed_non_rednts = list(removed_p_letters - p_rednts)
     q_removed_non_rednts = list(removed_q_letters - q_rednts)
-    #print('removed non rednts:')
-    #print(p_removed_non_rednts)
-    #print(q_removed_non_rednts)
 
-
+    #Recasts as necessary based on what objects letters and words are 
+    #defined as
     if type(p.alphabet()) == str or type(q.alphabet()) == str:
         p_removed_non_rednts = ''.join(p_removed_non_rednts)
         q_removed_non_rednts = ''.join(q_removed_non_rednts)
@@ -196,25 +189,10 @@ def find_rednt_unused(p, q, pp, qq, trivial_result):
     p_true_unused = removed_p_letters & set(unused_letters(trivial_result[1]))
     q_true_unused = removed_q_letters & set(unused_letters(trivial_result[2]))
 
-    #p_reused = ''.join(removed_p_letters - (p_rednts.union(p_true_unused)))
-    #q_reused = ''.join(removed_q_letters - (q_rednts.union(q_true_unused)))
-    #print('Reused letters in p and q:')
-    #print(p_reused)
-    #print(q_reused)
-
     real_p_alph = pp.alphabet() + p_removed_non_rednts
     real_q_alph = qq.alphabet() + q_removed_non_rednts
-    #print('real presentation alphabets:')
-    #print(real_p_alph)
-    #print(real_q_alph)
-
-    #print('The letters not used in any relation words before or after generator removal')
-    #print(p_true_unused)
-    #print(q_true_unused)
-    #print('\n')
 
     if (len(p_removed_non_rednts) != len(q_removed_non_rednts)): 
-    #and len(p_true_unused) != len(q_true_unused):
         #print('Not isomorphic, the amount of unused generators for each presentation differs')
         return False
 
